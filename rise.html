@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rise</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#06060f;color:#e0e0e0;min-height:100vh;padding-bottom:80px;}
+
+#xpPop{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-10px);background:linear-gradient(135deg,#1a2a1a,#0f1f0f);border:1px solid rgba(76,175,80,0.4);border-radius:20px;padding:8px 18px;font-size:12px;font-weight:800;color:#4CAF50;letter-spacing:1px;opacity:0;transition:all 0.4s;z-index:999;pointer-events:none;white-space:nowrap;}
+
+.hdr{background:linear-gradient(160deg,#08081a,#0d0d20);padding:16px 16px 12px;border-bottom:1px solid #ffffff0a;position:sticky;top:0;z-index:50;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.rise-logo{font-size:20px;font-weight:900;letter-spacing:5px;color:#fff;}
+.rise-logo b{color:#4fc3f7;}
+.hdr-right{text-align:right;}
+.hdr-date{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
+.hdr-time{font-size:17px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;}
+.hdr-week{font-size:9px;font-weight:700;color:#4fc3f7;letter-spacing:2px;text-transform:uppercase;margin-top:1px;}
+.rank-row{display:flex;align-items:center;gap:10px;}
+.rank-badge{width:34px;height:34px;border-radius:9px;background:radial-gradient(circle,#4CAF50,#1b5e20);border:2px solid #4CAF50;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;box-shadow:0 0 12px rgba(76,175,80,0.4);flex-shrink:0;}
+.xp-wrap{flex:1;}
+.xp-top{display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,0.3);font-weight:700;letter-spacing:0.5px;margin-bottom:4px;}
+.xp-top span{color:#ffd166;}
+.xp-bg{height:5px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;}
+.xp-fill{height:100%;background:linear-gradient(90deg,#ffd166,#f7971e);border-radius:3px;transition:width 0.5s;}
+
+.main{padding:10px 13px;}
+.section-label{font-size:9px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.2);text-transform:uppercase;padding:4px 2px 8px;}
+
+.day-block{margin-bottom:10px;}
+.day-hdr{background:rgba(255,255,255,0.03);border:1px solid #ffffff0d;border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background 0.2s;user-select:none;}
+.day-hdr:hover{background:rgba(255,255,255,0.05);}
+.day-label{font-size:9px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:4px;}
+.day-name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.day-sub-inline{font-size:12px;font-weight:500;color:rgba(255,255,255,0.5);}
+.last-done-pill{font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:2px 8px;display:none;}
+.last-done-pill.show{display:inline-block;}
+.day-prog-pill{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.08);white-space:nowrap;flex-shrink:0;}
+.day-prog-pill.complete{background:rgba(76,175,80,0.15);color:#4CAF50;border-color:rgba(76,175,80,0.25);}
+
+.day-body{background:#0a0a1a;border:1px solid #ffffff0d;border-top:none;border-radius:0 0 14px 14px;overflow:hidden;}
+
+/* Day selector row */
+.day-sel-row{padding:10px 13px 8px;border-bottom:1px solid #ffffff07;}
+.day-sel-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+.day-sel-chips{display:flex;gap:5px;}
+.day-chip{flex:1;text-align:center;padding:6px 2px;border-radius:9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);color:rgba(255,255,255,0.3);font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s;user-select:none;}
+.day-chip:hover{background:rgba(79,195,247,0.08);color:rgba(255,255,255,0.5);}
+.day-chip.selected{background:rgba(79,195,247,0.15);border-color:rgba(79,195,247,0.35);color:#4fc3f7;}
+.day-chip.today-chip{border-color:rgba(255,209,102,0.3);color:rgba(255,209,102,0.6);}
+.day-chip.today-chip.selected{background:rgba(255,209,102,0.15);border-color:rgba(255,209,102,0.5);color:#ffd166;}
+
+.ex-card{padding:11px 13px;border-bottom:1px solid #ffffff07;display:flex;align-items:center;gap:10px;}
+.ex-card:last-of-type{border-bottom:none;}
+.ex-info{flex:1;min-width:0;}
+.ex-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;}
+.ex-name.striked{color:rgba(255,255,255,0.3);text-decoration:line-through;}
+.ex-sets{font-size:10px;color:rgba(255,255,255,0.3);}
+.ex-pr{font-size:9px;font-weight:700;color:#ffd166;margin-top:3px;min-height:11px;}
+.ex-controls{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.wpicker{display:flex;flex-direction:column;align-items:center;gap:1px;}
+.warr{font-size:9px;color:rgba(255,255,255,0.25);cursor:pointer;line-height:1.2;padding:2px 6px;border-radius:4px;user-select:none;}
+.warr:hover{color:#4fc3f7;background:rgba(79,195,247,0.1);}
+.wbox{background:#0f0f20;border:1px solid #ffffff12;border-radius:8px;padding:5px 8px;text-align:center;min-width:48px;}
+.wval{font-size:13px;font-weight:800;color:#4fc3f7;line-height:1;}
+.wunit{font-size:8px;color:rgba(255,255,255,0.3);margin-top:1px;}
+.done-btn{padding:7px 11px;border-radius:9px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+.done-btn:hover{background:rgba(79,195,247,0.1);border-color:rgba(79,195,247,0.2);color:#4fc3f7;}
+.done-btn.checked{background:rgba(76,175,80,0.15);border-color:rgba(76,175,80,0.3);color:#4CAF50;}
+
+.sat-toggle{display:flex;padding:10px 13px;gap:8px;border-bottom:1px solid #ffffff07;}
+.sat-btn{flex:1;padding:8px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.sat-btn.sat-active{background:rgba(79,195,247,0.12);border-color:rgba(79,195,247,0.25);color:#4fc3f7;}
+
+.card{margin-bottom:12px;background:#0a0a1a;border-radius:16px;border:1px solid #ffffff0d;overflow:hidden;}
+.card-title{padding:11px 14px;font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:2px;border-bottom:1px solid #ffffff07;display:flex;justify-content:space-between;align-items:center;}
+.card-title span{color:#4fc3f7;font-size:10px;font-weight:600;text-transform:none;letter-spacing:0;}
+
+.w-input-row{padding:10px 13px;display:flex;gap:8px;border-bottom:1px solid #ffffff07;}
+.w-input{flex:1;background:#0f0f20;border:1px solid #ffffff10;border-radius:10px;padding:9px 12px;color:#fff;font-size:15px;font-weight:700;outline:none;text-align:center;}
+.w-input::placeholder{color:rgba(255,255,255,0.2);font-weight:400;font-size:12px;}
+.log-btn{padding:9px 16px;background:linear-gradient(135deg,#4fc3f7,#1565c0);border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;}
+.chart-wrap{padding:10px 13px 12px;}
+.chart-range{font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:0.5px;margin-bottom:8px;}
+.wchart{height:72px;display:flex;align-items:flex-end;gap:2px;}
+.wbar{flex:1;border-radius:2px 2px 0 0;cursor:pointer;position:relative;transition:opacity 0.1s;}
+.wbar:hover{opacity:0.75;}
+.wtip{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#12122a;border:1px solid #4fc3f733;border-radius:7px;padding:4px 8px;font-size:9px;color:#4fc3f7;white-space:nowrap;pointer-events:none;display:none;z-index:10;}
+.wbar:hover .wtip{display:block;}
+.chart-axis{display:flex;justify-content:space-between;font-size:7px;color:rgba(255,255,255,0.18);margin-top:4px;}
+
+.cali-hdr{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.cali-hdr:hover{background:rgba(255,255,255,0.02);}
+.cali-title{font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:2px;}
+.cali-toggle{font-size:10px;color:rgba(255,255,255,0.2);transition:transform 0.2s;}
+.cali-toggle.open{transform:rotate(180deg);}
+.cali-body{display:none;}
+
+.skill-row{padding:11px 13px;border-bottom:1px solid #ffffff07;}
+.skill-row:last-child{border-bottom:none;}
+.skill-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.skill-name{font-size:12px;font-weight:700;color:#fff;}
+.skill-tgt{font-size:9px;color:rgba(255,255,255,0.3);}
+.skill-controls{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.skill-save-btn{padding:7px 13px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.2);border-radius:9px;color:#4CAF50;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.skill-save-btn:hover{background:rgba(76,175,80,0.2);}
+.skill-bar-bg{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.skill-bar-fill{height:100%;background:linear-gradient(90deg,#4CAF50,#8BC34A);border-radius:3px;transition:width 0.5s;}
+</style>
+</head>
+<body>
+
+<div id="xpPop"></div>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="rise-logo">R<b>I</b>SE</div>
+    <div class="hdr-right">
+      <div class="hdr-date" id="hdrDate"></div>
+      <div class="hdr-time" id="hdrTime"></div>
+      <div class="hdr-week" id="hdrWeek"></div>
+    </div>
+  </div>
+  <div class="rank-row">
+    <div class="rank-badge">E</div>
+    <div class="xp-wrap">
+      <div class="xp-top"><span>&#9876; E RANK HUNTER</span><span id="xpLabel">3,000 / 10,000 XP</span></div>
+      <div class="xp-bg"><div class="xp-fill" id="xpFill" style="width:30%;"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="section-label">Workouts</div>
+<div class="day-block"><div class="day-hdr" onclick="toggleDay('push')"><div class="day-hdr-left"><div class="day-label">PUSH DAY</div><div class="day-name-row"><span class="day-sub-inline">Chest · Shoulders · Triceps</span><span class="last-done-pill" id="lastdone_push"></span></div></div><div class="day-prog-pill" id="prog_push">0 / 5</div></div><div class="day-body" id="body_push" style="display:none"><div class="day-sel-row"><div class="day-sel-label">Doing this on:</div><div class="day-sel-chips" id="daychips_push"><div class="day-chip" id="chip_push_Mon" onclick="selectDay('push','Mon')">Mon</div><div class="day-chip" id="chip_push_Tue" onclick="selectDay('push','Tue')">Tue</div><div class="day-chip" id="chip_push_Wed" onclick="selectDay('push','Wed')">Wed</div><div class="day-chip" id="chip_push_Thu" onclick="selectDay('push','Thu')">Thu</div><div class="day-chip" id="chip_push_Fri" onclick="selectDay('push','Fri')">Fri</div><div class="day-chip" id="chip_push_Sat" onclick="selectDay('push','Sat')">Sat</div><div class="day-chip" id="chip_push_Sun" onclick="selectDay('push','Sun')">Sun</div></div></div><div class="ex-card" id="excard_push_0"><div class="ex-info"><div class="ex-name" id="exname_push_0">Dumbbell Bench Press</div><div class="ex-sets">4 sets · 8–10 reps · 90s rest</div><div class="ex-pr" id="expr_push_0"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('push',0,5,35)">&#9650;</div><div class="wbox"><div class="wval" id="w_push_0">35</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('push',0,-5,35)">&#9660;</div></div><button class="done-btn" id="btn_push_0" onclick="toggleDone('push',0)">Done</button></div></div><div class="ex-card" id="excard_push_1"><div class="ex-info"><div class="ex-name" id="exname_push_1">Cable Chest Fly</div><div class="ex-sets">3 sets · 12–15 reps · 60s rest</div><div class="ex-pr" id="expr_push_1"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('push',1,5,20)">&#9650;</div><div class="wbox"><div class="wval" id="w_push_1">20</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('push',1,-5,20)">&#9660;</div></div><button class="done-btn" id="btn_push_1" onclick="toggleDone('push',1)">Done</button></div></div><div class="ex-card" id="excard_push_2"><div class="ex-info"><div class="ex-name" id="exname_push_2">Dumbbell Shoulder Press</div><div class="ex-sets">3 sets · 10–12 reps · 90s rest</div><div class="ex-pr" id="expr_push_2"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('push',2,5,25)">&#9650;</div><div class="wbox"><div class="wval" id="w_push_2">25</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('push',2,-5,25)">&#9660;</div></div><button class="done-btn" id="btn_push_2" onclick="toggleDone('push',2)">Done</button></div></div><div class="ex-card" id="excard_push_3"><div class="ex-info"><div class="ex-name" id="exname_push_3">Lateral Raise</div><div class="ex-sets">3 sets · 15 reps · 60s rest</div><div class="ex-pr" id="expr_push_3"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('push',3,5,12)">&#9650;</div><div class="wbox"><div class="wval" id="w_push_3">12</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('push',3,-5,12)">&#9660;</div></div><button class="done-btn" id="btn_push_3" onclick="toggleDone('push',3)">Done</button></div></div><div class="ex-card" id="excard_push_4"><div class="ex-info"><div class="ex-name" id="exname_push_4">Cable Tricep Pushdown</div><div class="ex-sets">3 sets · 12 reps · 60s rest</div><div class="ex-pr" id="expr_push_4"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('push',4,5,30)">&#9650;</div><div class="wbox"><div class="wval" id="w_push_4">30</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('push',4,-5,30)">&#9660;</div></div><button class="done-btn" id="btn_push_4" onclick="toggleDone('push',4)">Done</button></div></div></div></div><div class="day-block"><div class="day-hdr" onclick="toggleDay('pull')"><div class="day-hdr-left"><div class="day-label">PULL DAY</div><div class="day-name-row"><span class="day-sub-inline">Back · Biceps</span><span class="last-done-pill" id="lastdone_pull"></span></div></div><div class="day-prog-pill" id="prog_pull">0 / 5</div></div><div class="day-body" id="body_pull" style="display:none"><div class="day-sel-row"><div class="day-sel-label">Doing this on:</div><div class="day-sel-chips" id="daychips_pull"><div class="day-chip" id="chip_pull_Mon" onclick="selectDay('pull','Mon')">Mon</div><div class="day-chip" id="chip_pull_Tue" onclick="selectDay('pull','Tue')">Tue</div><div class="day-chip" id="chip_pull_Wed" onclick="selectDay('pull','Wed')">Wed</div><div class="day-chip" id="chip_pull_Thu" onclick="selectDay('pull','Thu')">Thu</div><div class="day-chip" id="chip_pull_Fri" onclick="selectDay('pull','Fri')">Fri</div><div class="day-chip" id="chip_pull_Sat" onclick="selectDay('pull','Sat')">Sat</div><div class="day-chip" id="chip_pull_Sun" onclick="selectDay('pull','Sun')">Sun</div></div></div><div class="ex-card" id="excard_pull_0"><div class="ex-info"><div class="ex-name" id="exname_pull_0">Pull-ups / Lat Pulldown</div><div class="ex-sets">4 sets · 6–10 reps · 90s rest</div><div class="ex-pr" id="expr_pull_0"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('pull',0,5,50)">&#9650;</div><div class="wbox"><div class="wval" id="w_pull_0">50</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('pull',0,-5,50)">&#9660;</div></div><button class="done-btn" id="btn_pull_0" onclick="toggleDone('pull',0)">Done</button></div></div><div class="ex-card" id="excard_pull_1"><div class="ex-info"><div class="ex-name" id="exname_pull_1">Single Arm DB Row</div><div class="ex-sets">3 sets · 10–12 reps · 90s rest</div><div class="ex-pr" id="expr_pull_1"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('pull',1,5,30)">&#9650;</div><div class="wbox"><div class="wval" id="w_pull_1">30</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('pull',1,-5,30)">&#9660;</div></div><button class="done-btn" id="btn_pull_1" onclick="toggleDone('pull',1)">Done</button></div></div><div class="ex-card" id="excard_pull_2"><div class="ex-info"><div class="ex-name" id="exname_pull_2">Seated Cable Row</div><div class="ex-sets">3 sets · 12 reps · 60s rest</div><div class="ex-pr" id="expr_pull_2"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('pull',2,5,40)">&#9650;</div><div class="wbox"><div class="wval" id="w_pull_2">40</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('pull',2,-5,40)">&#9660;</div></div><button class="done-btn" id="btn_pull_2" onclick="toggleDone('pull',2)">Done</button></div></div><div class="ex-card" id="excard_pull_3"><div class="ex-info"><div class="ex-name" id="exname_pull_3">Barbell Curl</div><div class="ex-sets">3 sets · 10 reps · 60s rest</div><div class="ex-pr" id="expr_pull_3"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('pull',3,5,35)">&#9650;</div><div class="wbox"><div class="wval" id="w_pull_3">35</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('pull',3,-5,35)">&#9660;</div></div><button class="done-btn" id="btn_pull_3" onclick="toggleDone('pull',3)">Done</button></div></div><div class="ex-card" id="excard_pull_4"><div class="ex-info"><div class="ex-name" id="exname_pull_4">Hammer Curl</div><div class="ex-sets">3 sets · 12 reps · 60s rest</div><div class="ex-pr" id="expr_pull_4"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('pull',4,5,20)">&#9650;</div><div class="wbox"><div class="wval" id="w_pull_4">20</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('pull',4,-5,20)">&#9660;</div></div><button class="done-btn" id="btn_pull_4" onclick="toggleDone('pull',4)">Done</button></div></div></div></div><div class="day-block"><div class="day-hdr" onclick="toggleDay('legs')"><div class="day-hdr-left"><div class="day-label">LEG DAY</div><div class="day-name-row"><span class="day-sub-inline">Quads · Hamstrings · Calves</span><span class="last-done-pill" id="lastdone_legs"></span></div></div><div class="day-prog-pill" id="prog_legs">0 / 5</div></div><div class="day-body" id="body_legs" style="display:none"><div class="day-sel-row"><div class="day-sel-label">Doing this on:</div><div class="day-sel-chips" id="daychips_legs"><div class="day-chip" id="chip_legs_Mon" onclick="selectDay('legs','Mon')">Mon</div><div class="day-chip" id="chip_legs_Tue" onclick="selectDay('legs','Tue')">Tue</div><div class="day-chip" id="chip_legs_Wed" onclick="selectDay('legs','Wed')">Wed</div><div class="day-chip" id="chip_legs_Thu" onclick="selectDay('legs','Thu')">Thu</div><div class="day-chip" id="chip_legs_Fri" onclick="selectDay('legs','Fri')">Fri</div><div class="day-chip" id="chip_legs_Sat" onclick="selectDay('legs','Sat')">Sat</div><div class="day-chip" id="chip_legs_Sun" onclick="selectDay('legs','Sun')">Sun</div></div></div><div class="ex-card" id="excard_legs_0"><div class="ex-info"><div class="ex-name" id="exname_legs_0">Barbell Squat</div><div class="ex-sets">4 sets · 8–10 reps · 90s rest</div><div class="ex-pr" id="expr_legs_0"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('legs',0,5,65)">&#9650;</div><div class="wbox"><div class="wval" id="w_legs_0">65</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('legs',0,-5,65)">&#9660;</div></div><button class="done-btn" id="btn_legs_0" onclick="toggleDone('legs',0)">Done</button></div></div><div class="ex-card" id="excard_legs_1"><div class="ex-info"><div class="ex-name" id="exname_legs_1">Leg Press</div><div class="ex-sets">3 sets · 12 reps · 90s rest</div><div class="ex-pr" id="expr_legs_1"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('legs',1,5,100)">&#9650;</div><div class="wbox"><div class="wval" id="w_legs_1">100</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('legs',1,-5,100)">&#9660;</div></div><button class="done-btn" id="btn_legs_1" onclick="toggleDone('legs',1)">Done</button></div></div><div class="ex-card" id="excard_legs_2"><div class="ex-info"><div class="ex-name" id="exname_legs_2">Leg Curl</div><div class="ex-sets">3 sets · 12 reps · 60s rest</div><div class="ex-pr" id="expr_legs_2"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('legs',2,5,40)">&#9650;</div><div class="wbox"><div class="wval" id="w_legs_2">40</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('legs',2,-5,40)">&#9660;</div></div><button class="done-btn" id="btn_legs_2" onclick="toggleDone('legs',2)">Done</button></div></div><div class="ex-card" id="excard_legs_3"><div class="ex-info"><div class="ex-name" id="exname_legs_3">Calf Raise</div><div class="ex-sets">4 sets · 15 reps · 45s rest</div><div class="ex-pr" id="expr_legs_3"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('legs',3,5,50)">&#9650;</div><div class="wbox"><div class="wval" id="w_legs_3">50</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('legs',3,-5,50)">&#9660;</div></div><button class="done-btn" id="btn_legs_3" onclick="toggleDone('legs',3)">Done</button></div></div><div class="ex-card" id="excard_legs_4"><div class="ex-info"><div class="ex-name" id="exname_legs_4">Plank</div><div class="ex-sets">3 sets · 45s hold</div></div><div class="ex-controls"><button class="done-btn" id="btn_legs_4" onclick="toggleDone('legs',4)">Done</button></div></div></div></div><div class="day-block"><div class="day-hdr" onclick="toggleDay('cardio')"><div class="day-hdr-left"><div class="day-label">CARDIO + CORE</div><div class="day-name-row"><span class="day-sub-inline">Stair Climber · Bike · Core</span><span class="last-done-pill" id="lastdone_cardio"></span></div></div><div class="day-prog-pill" id="prog_cardio">0 / 5</div></div><div class="day-body" id="body_cardio" style="display:none"><div class="day-sel-row"><div class="day-sel-label">Doing this on:</div><div class="day-sel-chips" id="daychips_cardio"><div class="day-chip" id="chip_cardio_Mon" onclick="selectDay('cardio','Mon')">Mon</div><div class="day-chip" id="chip_cardio_Tue" onclick="selectDay('cardio','Tue')">Tue</div><div class="day-chip" id="chip_cardio_Wed" onclick="selectDay('cardio','Wed')">Wed</div><div class="day-chip" id="chip_cardio_Thu" onclick="selectDay('cardio','Thu')">Thu</div><div class="day-chip" id="chip_cardio_Fri" onclick="selectDay('cardio','Fri')">Fri</div><div class="day-chip" id="chip_cardio_Sat" onclick="selectDay('cardio','Sat')">Sat</div><div class="day-chip" id="chip_cardio_Sun" onclick="selectDay('cardio','Sun')">Sun</div></div></div><div class="ex-card" id="excard_cardio_0"><div class="ex-info"><div class="ex-name" id="exname_cardio_0">Stair Climber</div><div class="ex-sets">progressive mins · see cardio plan</div></div><div class="ex-controls"><button class="done-btn" id="btn_cardio_0" onclick="toggleDone('cardio',0)">Done</button></div></div><div class="ex-card" id="excard_cardio_1"><div class="ex-info"><div class="ex-name" id="exname_cardio_1">Stationary Bike</div><div class="ex-sets">10 mins · easy pace</div></div><div class="ex-controls"><button class="done-btn" id="btn_cardio_1" onclick="toggleDone('cardio',1)">Done</button></div></div><div class="ex-card" id="excard_cardio_2"><div class="ex-info"><div class="ex-name" id="exname_cardio_2">Cable Crunch</div><div class="ex-sets">3 sets · 15 reps · 60s rest</div><div class="ex-pr" id="expr_cardio_2"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('cardio',2,5,30)">&#9650;</div><div class="wbox"><div class="wval" id="w_cardio_2">30</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('cardio',2,-5,30)">&#9660;</div></div><button class="done-btn" id="btn_cardio_2" onclick="toggleDone('cardio',2)">Done</button></div></div><div class="ex-card" id="excard_cardio_3"><div class="ex-info"><div class="ex-name" id="exname_cardio_3">Hanging Leg Raise</div><div class="ex-sets">3 sets · 12 reps · 60s rest</div></div><div class="ex-controls"><button class="done-btn" id="btn_cardio_3" onclick="toggleDone('cardio',3)">Done</button></div></div><div class="ex-card" id="excard_cardio_4"><div class="ex-info"><div class="ex-name" id="exname_cardio_4">Russian Twist</div><div class="ex-sets">3 sets · 20 reps · 60s rest</div></div><div class="ex-controls"><button class="done-btn" id="btn_cardio_4" onclick="toggleDone('cardio',4)">Done</button></div></div></div></div><div class="day-block"><div class="day-hdr" onclick="toggleDay('arms')"><div class="day-hdr-left"><div class="day-label">ARMS + ABS</div><div class="day-name-row"><span class="day-sub-inline">Biceps · Triceps · Core</span><span class="last-done-pill" id="lastdone_arms"></span></div></div><div class="day-prog-pill" id="prog_arms">0 / 5</div></div><div class="day-body" id="body_arms" style="display:none"><div class="day-sel-row"><div class="day-sel-label">Doing this on:</div><div class="day-sel-chips" id="daychips_arms"><div class="day-chip" id="chip_arms_Mon" onclick="selectDay('arms','Mon')">Mon</div><div class="day-chip" id="chip_arms_Tue" onclick="selectDay('arms','Tue')">Tue</div><div class="day-chip" id="chip_arms_Wed" onclick="selectDay('arms','Wed')">Wed</div><div class="day-chip" id="chip_arms_Thu" onclick="selectDay('arms','Thu')">Thu</div><div class="day-chip" id="chip_arms_Fri" onclick="selectDay('arms','Fri')">Fri</div><div class="day-chip" id="chip_arms_Sat" onclick="selectDay('arms','Sat')">Sat</div><div class="day-chip" id="chip_arms_Sun" onclick="selectDay('arms','Sun')">Sun</div></div></div><div class="ex-card" id="excard_arms_0"><div class="ex-info"><div class="ex-name" id="exname_arms_0">EZ Bar Curl</div><div class="ex-sets">3 sets · 10–12 reps · 60s rest</div><div class="ex-pr" id="expr_arms_0"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('arms',0,5,40)">&#9650;</div><div class="wbox"><div class="wval" id="w_arms_0">40</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('arms',0,-5,40)">&#9660;</div></div><button class="done-btn" id="btn_arms_0" onclick="toggleDone('arms',0)">Done</button></div></div><div class="ex-card" id="excard_arms_1"><div class="ex-info"><div class="ex-name" id="exname_arms_1">Close Grip Bench Press</div><div class="ex-sets">3 sets · 10–12 reps · 90s rest</div><div class="ex-pr" id="expr_arms_1"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('arms',1,5,65)">&#9650;</div><div class="wbox"><div class="wval" id="w_arms_1">65</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('arms',1,-5,65)">&#9660;</div></div><button class="done-btn" id="btn_arms_1" onclick="toggleDone('arms',1)">Done</button></div></div><div class="ex-card" id="excard_arms_2"><div class="ex-info"><div class="ex-name" id="exname_arms_2">Preacher Curl</div><div class="ex-sets">3 sets · 12 reps · 60s rest</div><div class="ex-pr" id="expr_arms_2"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('arms',2,5,30)">&#9650;</div><div class="wbox"><div class="wval" id="w_arms_2">30</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('arms',2,-5,30)">&#9660;</div></div><button class="done-btn" id="btn_arms_2" onclick="toggleDone('arms',2)">Done</button></div></div><div class="ex-card" id="excard_arms_3"><div class="ex-info"><div class="ex-name" id="exname_arms_3">Cable Tricep Kickback</div><div class="ex-sets">3 sets · 15 reps · 60s rest</div><div class="ex-pr" id="expr_arms_3"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('arms',3,5,15)">&#9650;</div><div class="wbox"><div class="wval" id="w_arms_3">15</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('arms',3,-5,15)">&#9660;</div></div><button class="done-btn" id="btn_arms_3" onclick="toggleDone('arms',3)">Done</button></div></div><div class="ex-card" id="excard_arms_4"><div class="ex-info"><div class="ex-name" id="exname_arms_4">Cable Crunch</div><div class="ex-sets">3 sets · 15 reps · 60s rest</div><div class="ex-pr" id="expr_arms_4"></div></div><div class="ex-controls"><div class="wpicker"><div class="warr" onclick="adjW('arms',4,5,30)">&#9650;</div><div class="wbox"><div class="wval" id="w_arms_4">30</div><div class="wunit">lbs</div></div><div class="warr" onclick="adjW('arms',4,-5,30)">&#9660;</div></div><button class="done-btn" id="btn_arms_4" onclick="toggleDone('arms',4)">Done</button></div></div></div></div><div class="day-block"><div class="day-hdr" onclick="toggleDay('sat')"><div class="day-hdr-left"><div class="day-label">SATURDAY CALISTHENICS</div><div class="day-name-row"><span class="day-sub-inline">Home / Bakke</span><span class="last-done-pill" id="lastdone_sat"></span></div></div><div class="day-prog-pill" id="prog_sat">0 / 10</div></div><div class="day-body" id="body_sat" style="display:none"><div class="day-sel-row"><div class="day-sel-label">Doing this on:</div><div class="day-sel-chips" id="daychips_sat"><div class="day-chip" id="chip_sat_Mon" onclick="selectDay('sat','Mon')">Mon</div><div class="day-chip" id="chip_sat_Tue" onclick="selectDay('sat','Tue')">Tue</div><div class="day-chip" id="chip_sat_Wed" onclick="selectDay('sat','Wed')">Wed</div><div class="day-chip" id="chip_sat_Thu" onclick="selectDay('sat','Thu')">Thu</div><div class="day-chip" id="chip_sat_Fri" onclick="selectDay('sat','Fri')">Fri</div><div class="day-chip" id="chip_sat_Sat" onclick="selectDay('sat','Sat')">Sat</div><div class="day-chip" id="chip_sat_Sun" onclick="selectDay('sat','Sun')">Sun</div></div></div><div class="sat-toggle"><button class="sat-btn sat-active" id="satBtnA" onclick="showSat('A')">&#127968; Home</button><button class="sat-btn" id="satBtnB" onclick="showSat('B')">&#127931; Bakke</button></div><div id="satA"><div class="ex-card"><div class="ex-info"><div class="ex-name">Push-ups</div><div class="ex-sets">3 sets to failure</div></div><div class="ex-controls"><button class="done-btn" id="btn_sata_0" onclick="toggleDone('sata',0)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Diamond Push-ups</div><div class="ex-sets">3 sets · 10 reps</div></div><div class="ex-controls"><button class="done-btn" id="btn_sata_1" onclick="toggleDone('sata',1)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Pike Push-ups</div><div class="ex-sets">3 sets · 10 reps</div></div><div class="ex-controls"><button class="done-btn" id="btn_sata_2" onclick="toggleDone('sata',2)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Squats</div><div class="ex-sets">3 sets · 20 reps</div></div><div class="ex-controls"><button class="done-btn" id="btn_sata_3" onclick="toggleDone('sata',3)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Jump Squats</div><div class="ex-sets">3 sets · 15 reps</div></div><div class="ex-controls"><button class="done-btn" id="btn_sata_4" onclick="toggleDone('sata',4)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Reverse Lunges</div><div class="ex-sets">3 sets · 12 each leg</div></div><div class="ex-controls"><button class="done-btn" id="btn_sata_5" onclick="toggleDone('sata',5)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Plank</div><div class="ex-sets">3 sets · 45s</div></div><div class="ex-controls"><button class="done-btn" id="btn_sata_6" onclick="toggleDone('sata',6)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Bicycle Crunches</div><div class="ex-sets">3 sets · 20 reps</div></div><div class="ex-controls"><button class="done-btn" id="btn_sata_7" onclick="toggleDone('sata',7)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Superman Hold</div><div class="ex-sets">3 sets · 30s</div></div><div class="ex-controls"><button class="done-btn" id="btn_sata_8" onclick="toggleDone('sata',8)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Lying Leg Raises</div><div class="ex-sets">3 sets · 15 reps</div></div><div class="ex-controls"><button class="done-btn" id="btn_sata_9" onclick="toggleDone('sata',9)">Done</button></div></div></div><div id="satB" style="display:none"><div class="ex-card"><div class="ex-info"><div class="ex-name">Pull-ups</div><div class="ex-sets">sets to failure</div></div><div class="ex-controls"><button class="done-btn" id="btn_satb_0" onclick="toggleDone('satb',0)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Dips</div><div class="ex-sets">sets to failure</div></div><div class="ex-controls"><button class="done-btn" id="btn_satb_1" onclick="toggleDone('satb',1)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Dead Hang</div><div class="ex-sets">max hold time</div></div><div class="ex-controls"><button class="done-btn" id="btn_satb_2" onclick="toggleDone('satb',2)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Hanging Leg Raise</div><div class="ex-sets">3 sets · 12 reps</div></div><div class="ex-controls"><button class="done-btn" id="btn_satb_3" onclick="toggleDone('satb',3)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Bar Knee Raises</div><div class="ex-sets">3 sets · 15 reps</div></div><div class="ex-controls"><button class="done-btn" id="btn_satb_4" onclick="toggleDone('satb',4)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Push-up Variations</div><div class="ex-sets">3 sets · 10 reps each</div></div><div class="ex-controls"><button class="done-btn" id="btn_satb_5" onclick="toggleDone('satb',5)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">L-sit on Parallel Bars</div><div class="ex-sets">max hold time</div></div><div class="ex-controls"><button class="done-btn" id="btn_satb_6" onclick="toggleDone('satb',6)">Done</button></div></div><div class="ex-card"><div class="ex-info"><div class="ex-name">Russian Twist with Plate</div><div class="ex-sets">3 sets · 20 reps</div></div><div class="ex-controls"><button class="done-btn" id="btn_satb_7" onclick="toggleDone('satb',7)">Done</button></div></div></div></div></div>
+  <div class="card">
+    <div class="card-title">&#128200; Weight Log <span id="chartRangeLabel"></span></div>
+    <div class="w-input-row">
+      <input class="w-input" id="wInput" type="number" placeholder="Today's weight (lbs)" step="0.1">
+      <button class="log-btn" onclick="logWeight()">Log</button>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-range" id="chartRange"></div>
+      <div class="wchart" id="wchart"></div>
+      <div class="chart-axis" id="chartAxis"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cali-hdr" onclick="toggleCali()">
+      <div class="cali-title">&#9876; Calisthenics PRs</div>
+      <div class="cali-toggle" id="caliToggle">&#9660;</div>
+    </div>
+    <div class="cali-body" id="caliBody">
+<div class="skill-row"><div class="skill-top"><div class="skill-name">Dead Hang</div><div class="skill-tgt">target: 60 s</div></div><div class="skill-controls"><div class="wpicker"><div class="warr" onclick="adjSkill('dead_hang',1)">&#9650;</div><div class="wbox"><div class="wval" id="sv_dead_hang">42</div><div class="wunit">s</div></div><div class="warr" onclick="adjSkill('dead_hang',-1)">&#9660;</div></div><button class="skill-save-btn" onclick="saveSkill('dead_hang')">Save PR</button></div><div class="skill-bar-bg"><div class="skill-bar-fill" id="sbar_dead_hang" style="width:70%;"></div></div></div><div class="skill-row"><div class="skill-top"><div class="skill-name">Push-ups</div><div class="skill-tgt">target: 20 reps</div></div><div class="skill-controls"><div class="wpicker"><div class="warr" onclick="adjSkill('pushups',1)">&#9650;</div><div class="wbox"><div class="wval" id="sv_pushups">14</div><div class="wunit">reps</div></div><div class="warr" onclick="adjSkill('pushups',-1)">&#9660;</div></div><button class="skill-save-btn" onclick="saveSkill('pushups')">Save PR</button></div><div class="skill-bar-bg"><div class="skill-bar-fill" id="sbar_pushups" style="width:70%;"></div></div></div><div class="skill-row"><div class="skill-top"><div class="skill-name">Dips</div><div class="skill-tgt">target: 15 reps</div></div><div class="skill-controls"><div class="wpicker"><div class="warr" onclick="adjSkill('dips',1)">&#9650;</div><div class="wbox"><div class="wval" id="sv_dips">8</div><div class="wunit">reps</div></div><div class="warr" onclick="adjSkill('dips',-1)">&#9660;</div></div><button class="skill-save-btn" onclick="saveSkill('dips')">Save PR</button></div><div class="skill-bar-bg"><div class="skill-bar-fill" id="sbar_dips" style="width:53%;"></div></div></div><div class="skill-row"><div class="skill-top"><div class="skill-name">Negative Pull-ups</div><div class="skill-tgt">target: 5 reps</div></div><div class="skill-controls"><div class="wpicker"><div class="warr" onclick="adjSkill('neg_pullups',1)">&#9650;</div><div class="wbox"><div class="wval" id="sv_neg_pullups">3</div><div class="wunit">reps</div></div><div class="warr" onclick="adjSkill('neg_pullups',-1)">&#9660;</div></div><button class="skill-save-btn" onclick="saveSkill('neg_pullups')">Save PR</button></div><div class="skill-bar-bg"><div class="skill-bar-fill" id="sbar_neg_pullups" style="width:60%;"></div></div></div><div class="skill-row"><div class="skill-top"><div class="skill-name">Hollow Body Hold</div><div class="skill-tgt">target: 30 s</div></div><div class="skill-controls"><div class="wpicker"><div class="warr" onclick="adjSkill('hollow',1)">&#9650;</div><div class="wbox"><div class="wval" id="sv_hollow">20</div><div class="wunit">s</div></div><div class="warr" onclick="adjSkill('hollow',-1)">&#9660;</div></div><button class="skill-save-btn" onclick="saveSkill('hollow')">Save PR</button></div><div class="skill-bar-bg"><div class="skill-bar-fill" id="sbar_hollow" style="width:66%;"></div></div></div><div class="skill-row"><div class="skill-top"><div class="skill-name">Floor L-sit</div><div class="skill-tgt">target: 10 s</div></div><div class="skill-controls"><div class="wpicker"><div class="warr" onclick="adjSkill('lsit',1)">&#9650;</div><div class="wbox"><div class="wval" id="sv_lsit">4</div><div class="wunit">s</div></div><div class="warr" onclick="adjSkill('lsit',-1)">&#9660;</div></div><button class="skill-save-btn" onclick="saveSkill('lsit')">Save PR</button></div><div class="skill-bar-bg"><div class="skill-bar-fill" id="sbar_lsit" style="width:40%;"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var PRELOADED_WEIGHTS = [{date:"2026-09-01",lbs:142.7,kg:64.7},{date:"2026-09-02",lbs:142.2,kg:64.5},{date:"2026-09-04",lbs:143.5,kg:65.0},{date:"2026-09-05",lbs:144.0,kg:65.4},{date:"2026-09-07",lbs:143.8,kg:65.2},{date:"2026-09-08",lbs:144.6,kg:65.6},{date:"2026-09-09",lbs:144.2,kg:65.7},{date:"2026-09-10",lbs:144.8,kg:65.6},{date:"2026-09-11",lbs:146.6,kg:66.4},{date:"2026-09-14",lbs:147.8,kg:67.0},{date:"2026-09-15",lbs:147.0,kg:66.7},{date:"2026-09-18",lbs:146.0,kg:66.1},{date:"2026-09-19",lbs:146.0,kg:66.3},{date:"2026-09-23",lbs:147.0,kg:66.7},{date:"2026-09-24",lbs:147.2,kg:66.8},{date:"2026-09-25",lbs:147.0,kg:66.7},{date:"2026-09-27",lbs:145.4,kg:66.0},{date:"2026-09-28",lbs:146.6,kg:66.6},{date:"2026-09-29",lbs:146.6,kg:66.5},{date:"2026-09-30",lbs:148.0,kg:67.0},{date:"2026-10-01",lbs:148.4,kg:67.3},{date:"2026-10-02",lbs:147.2,kg:66.8},{date:"2026-10-05",lbs:146.4,kg:66.4},{date:"2026-10-06",lbs:147.0,kg:66.6},{date:"2026-10-07",lbs:147.0,kg:66.7},{date:"2026-10-08",lbs:147.0,kg:66.7},{date:"2026-10-09",lbs:146.5,kg:66.5},{date:"2026-10-12",lbs:146.3,kg:66.2},{date:"2026-10-13",lbs:147.0,kg:66.7},{date:"2026-10-16",lbs:146.8,kg:66.6},];
+var SKILL_DEFS = [{id:"dead_hang",name:"Dead Hang",unit:"s",target:60,defVal:42},{id:"pushups",name:"Push-ups",unit:"reps",target:20,defVal:14},{id:"dips",name:"Dips",unit:"reps",target:15,defVal:8},{id:"neg_pullups",name:"Negative Pull-ups",unit:"reps",target:5,defVal:3},{id:"hollow",name:"Hollow Body Hold",unit:"s",target:30,defVal:20},{id:"lsit",name:"Floor L-sit",unit:"s",target:10,defVal:4},];
+var WORKOUT_IDS = [{id:"push",total:5},{id:"pull",total:5},{id:"legs",total:5},{id:"cardio",total:5},{id:"arms",total:5},{id:"sat",total:10},{id:"sata",total:10},{id:"satb",total:8}];
+var DEF_WEIGHTS = {"push_0":35,"push_1":20,"push_2":25,"push_3":12,"push_4":30,"pull_0":50,"pull_1":30,"pull_2":40,"pull_3":35,"pull_4":20,"legs_0":65,"legs_1":100,"legs_2":40,"legs_3":50,"cardio_2":30,"arms_0":40,"arms_1":65,"arms_2":30,"arms_3":15,"arms_4":30,};
+
+var DAYS_LIST = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+var DAYS_JSDAY = {0:"Sun",1:"Mon",2:"Tue",3:"Wed",4:"Thu",5:"Fri",6:"Sat"};
+
+var APP = {xp:3000,weights:[],exercises:{},skills:{},lastDone:{},selectedDay:{},lastDate:""};
+var skillVals = {};
+
+function pad(n){return n<10?"0"+n:""+n;}
+function getTodayStr(){var d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function getTodayName(){return DAYS_JSDAY[new Date().getDay()];}
+function fmtDateShort(str){var p=str.split("-");var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return m[parseInt(p[1])-1]+" "+parseInt(p[2]);}
+
+function loadApp(){
+  var stored=null;
+  try{stored=JSON.parse(localStorage.getItem("rise_v1"));}catch(e){}
+  if(!stored){
+    APP.xp=3000;APP.weights=[];
+    for(var i=0;i<PRELOADED_WEIGHTS.length;i++) APP.weights.push(PRELOADED_WEIGHTS[i]);
+    APP.exercises={};APP.skills={};APP.lastDone={};APP.selectedDay={};APP.lastDate="";
+    for(var i=0;i<SKILL_DEFS.length;i++) APP.skills[SKILL_DEFS[i].id]=SKILL_DEFS[i].defVal;
+    saveApp();
+  } else {
+    APP.xp=stored.xp||3000;
+    APP.weights=stored.weights||[];
+    if(APP.weights.length===0){for(var i=0;i<PRELOADED_WEIGHTS.length;i++) APP.weights.push(PRELOADED_WEIGHTS[i]);}
+    APP.exercises=stored.exercises||{};
+    APP.skills=stored.skills||{};
+    APP.lastDone=stored.lastDone||{};
+    APP.selectedDay=stored.selectedDay||{};
+    APP.lastDate=stored.lastDate||"";
+    for(var i=0;i<SKILL_DEFS.length;i++){if(APP.skills[SKILL_DEFS[i].id]===undefined) APP.skills[SKILL_DEFS[i].id]=SKILL_DEFS[i].defVal;}
+  }
+  var today=getTodayStr();
+  if(APP.lastDate!==today){
+    for(var k in APP.exercises){if(typeof APP.exercises[k]==="object"&&APP.exercises[k]!==null) APP.exercises[k].done=false;}
+    APP.selectedDay={};
+    APP.lastDate=today;saveApp();
+  }
+  initSkillVals();
+}
+
+function saveApp(){
+  try{localStorage.setItem("rise_v1",JSON.stringify({xp:APP.xp,weights:APP.weights,exercises:APP.exercises,skills:APP.skills,lastDone:APP.lastDone,selectedDay:APP.selectedDay,lastDate:APP.lastDate}));}catch(e){}
+}
+
+function initSkillVals(){
+  for(var i=0;i<SKILL_DEFS.length;i++) skillVals[SKILL_DEFS[i].id]=APP.skills[SKILL_DEFS[i].id];
+}
+
+function tick(){
+  var d=new Date();
+  var days=["SUN","MON","TUE","WED","THU","FRI","SAT"];
+  var months=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  document.getElementById("hdrDate").textContent=days[d.getDay()]+" · "+months[d.getMonth()]+" "+d.getDate()+" · "+d.getFullYear();
+  var h=d.getHours(),m=d.getMinutes(),s=d.getSeconds();
+  var am=h>=12?"PM":"AM";h=h%12;if(h===0)h=12;
+  document.getElementById("hdrTime").textContent=(h<10?"0"+h:h)+":"+(m<10?"0"+m:m)+":"+(s<10?"0"+s:s)+" "+am;
+  var start=new Date("2026-11-08");var now=new Date();
+  var wk=Math.max(1,Math.floor((now-start)/(7*24*60*60*1000))+1);
+  document.getElementById("hdrWeek").textContent="WINTER ARC · WEEK "+wk;
+}
+setInterval(tick,1000);tick();
+
+// Mark today chip on all workout selectors
+function markTodayChips(){
+  var todayName=getTodayName();
+  for(var wi=0;wi<WORKOUT_IDS.length;wi++){
+    var wid=WORKOUT_IDS[wi].id;
+    var chip=document.getElementById("chip_"+wid+"_"+todayName);
+    if(chip) chip.classList.add("today-chip");
+  }
+}
+
+function selectDay(wid,day){
+  // Deselect all chips for this workout
+  for(var i=0;i<DAYS_LIST.length;i++){
+    var c=document.getElementById("chip_"+wid+"_"+DAYS_LIST[i]);
+    if(c) c.classList.remove("selected");
+  }
+  // Select tapped
+  var chip=document.getElementById("chip_"+wid+"_"+day);
+  if(chip) chip.classList.add("selected");
+  APP.selectedDay[wid]=day;
+  saveApp();
+}
+
+function restoreChips(){
+  var todayName=getTodayName();
+  for(var wi=0;wi<WORKOUT_IDS.length;wi++){
+    var wid=WORKOUT_IDS[wi].id;
+    var sel=APP.selectedDay[wid];
+    if(sel){
+      var chip=document.getElementById("chip_"+wid+"_"+sel);
+      if(chip) chip.classList.add("selected");
+    }
+  }
+}
+
+function toggleDay(id){
+  var b=document.getElementById("body_"+id);
+  if(!b)return;
+  b.style.display=(b.style.display==="none"||b.style.display===""?"block":"none");
+}
+
+function toggleCali(){
+  var body=document.getElementById("caliBody");
+  var tog=document.getElementById("caliToggle");
+  if(body.style.display==="block"){body.style.display="none";tog.classList.remove("open");}
+  else{body.style.display="block";tog.classList.add("open");}
+}
+
+function showSat(which){
+  var a=document.getElementById("satA"),b=document.getElementById("satB");
+  var ba=document.getElementById("satBtnA"),bb=document.getElementById("satBtnB");
+  if(which==="A"){a.style.display="block";b.style.display="none";ba.classList.add("sat-active");bb.classList.remove("sat-active");}
+  else{a.style.display="none";b.style.display="block";ba.classList.remove("sat-active");bb.classList.add("sat-active");}
+}
+
+function adjW(wid,idx,delta,defW){
+  var key=wid+"_"+idx;
+  if(!APP.exercises[key]||typeof APP.exercises[key]!=="object") APP.exercises[key]={weight:defW,done:false,bestWeight:0};
+  var w=(APP.exercises[key].weight||defW)+delta;
+  if(w<5)w=5;if(w>400)w=400;
+  APP.exercises[key].weight=w;saveApp();
+  var el=document.getElementById("w_"+wid+"_"+idx);if(el) el.textContent=w;
+  refreshPRLabel(wid,idx);
+}
+
+function refreshPRLabel(wid,idx){
+  var key=wid+"_"+idx;
+  var prEl=document.getElementById("expr_"+wid+"_"+idx);
+  if(!prEl)return;
+  var defW=DEF_WEIGHTS[key]||0;
+  var ex=APP.exercises[key];
+  var best,cur;
+  if(!ex||typeof ex!=="object"){best=defW;cur=defW;}
+  else{best=ex.bestWeight||defW;cur=ex.weight||defW;}
+  if(cur>best) prEl.textContent="⚡ New PR if completed!";
+  else prEl.textContent="Best: "+best+" lbs";
+}
+
+function toggleDone(wid,idx){
+  var key=wid+"_"+idx;
+  var defW=DEF_WEIGHTS[key];
+  if(!APP.exercises[key]||typeof APP.exercises[key]!=="object") APP.exercises[key]={weight:defW||0,done:false,bestWeight:0};
+  var ex=APP.exercises[key];
+  ex.done=!ex.done;
+  if(ex.done&&ex.weight!==undefined&&defW!==undefined){
+    var best=ex.bestWeight||defW;
+    if(ex.weight>best){
+      ex.bestWeight=ex.weight;APP.xp+=50;
+      var prEl=document.getElementById("expr_"+wid+"_"+idx);
+      if(prEl) prEl.textContent="★ PR: "+ex.weight+" lbs";
+      showPop("+50 XP — New PR: "+ex.weight+" lbs ⚡");
+      updateXP();
+    }
+  }
+  saveApp();
+  var btn=document.getElementById("btn_"+wid+"_"+idx);
+  var card=document.getElementById("excard_"+wid+"_"+idx);
+  if(ex.done){
+    if(btn){btn.textContent="✓ Done";btn.classList.add("checked");}
+    if(card){var nm=card.querySelector(".ex-name");if(nm) nm.classList.add("striked");}
+  } else {
+    if(btn){btn.textContent="Done";btn.classList.remove("checked");}
+    if(card){var nm=card.querySelector(".ex-name");if(nm) nm.classList.remove("striked");}
+    refreshPRLabel(wid,idx);
+  }
+  updateProgress(wid);
+  checkComplete(wid);
+}
+
+function getTotal(wid){for(var i=0;i<WORKOUT_IDS.length;i++) if(WORKOUT_IDS[i].id===wid) return WORKOUT_IDS[i].total;return 5;}
+
+function updateProgress(wid){
+  var total=getTotal(wid);var done=0;
+  for(var i=0;i<total;i++){var k=wid+"_"+i;if(APP.exercises[k]&&APP.exercises[k].done) done++;}
+  var el=document.getElementById("prog_"+wid);if(!el)return;
+  el.textContent=done+" / "+total;
+  if(done===total&&total>0) el.classList.add("complete"); else el.classList.remove("complete");
+}
+
+function checkComplete(wid){
+  var total=getTotal(wid);var done=0;
+  for(var i=0;i<total;i++){var k=wid+"_"+i;if(APP.exercises[k]&&APP.exercises[k].done) done++;}
+  if(done===total&&total>0){
+    var today=getTodayStr();var xpKey="xp_sess_"+wid+"_"+today;
+    if(!APP.exercises[xpKey]){
+      APP.exercises[xpKey]=true;APP.xp+=100;APP.lastDone[wid]=today;
+      saveApp();updateXP();showLastDone(wid,today);
+      showPop("+100 XP — Session Complete! ⚡");
+    }
+  }
+}
+
+function showLastDone(wid,dateStr){
+  var el=document.getElementById("lastdone_"+wid);if(!el)return;
+  el.textContent="last done: "+fmtDateShort(dateStr);el.classList.add("show");
+}
+
+function updateXP(){
+  var pct=Math.min(APP.xp/10000*100,100);
+  document.getElementById("xpFill").style.width=pct+"%";
+  document.getElementById("xpLabel").textContent=APP.xp.toLocaleString()+" / 10,000 XP";
+}
+
+function showPop(msg){
+  var el=document.getElementById("xpPop");
+  el.textContent=msg;el.style.opacity="1";el.style.transform="translateX(-50%) translateY(0)";
+  setTimeout(function(){el.style.opacity="0";el.style.transform="translateX(-50%) translateY(-10px)";},2500);
+}
+
+function adjSkill(id,delta){
+  skillVals[id]=(skillVals[id]||0)+delta;if(skillVals[id]<1)skillVals[id]=1;
+  var el=document.getElementById("sv_"+id);if(el) el.textContent=skillVals[id];
+}
+
+function saveSkill(id){
+  var prev=APP.skills[id];var nv=skillVals[id];
+  if(nv>prev){
+    APP.skills[id]=nv;APP.xp+=50;saveApp();updateXP();updateSkillBar(id);
+    var unit="";for(var i=0;i<SKILL_DEFS.length;i++){if(SKILL_DEFS[i].id===id){unit=SKILL_DEFS[i].unit;break;}}
+    showPop("+50 XP — Cali PR: "+nv+" "+unit+" ⚡");
+  } else {showPop("Scroll up to log a new PR");}
+}
+
+function updateSkillBar(id){
+  var tgt=0;for(var i=0;i<SKILL_DEFS.length;i++){if(SKILL_DEFS[i].id===id){tgt=SKILL_DEFS[i].target;break;}}
+  var pct=Math.min(APP.skills[id]/tgt*100,100);
+  var el=document.getElementById("sbar_"+id);if(el) el.style.width=pct+"%";
+}
+
+function logWeight(){
+  var v=parseFloat(document.getElementById("wInput").value);
+  if(isNaN(v)||v<80||v>400){showPop("Enter a valid weight in lbs");return;}
+  var kg=Math.round(v*0.453592*10)/10;var ds=getTodayStr();var updated=false;
+  for(var i=0;i<APP.weights.length;i++){if(APP.weights[i].date===ds){APP.weights[i]={date:ds,lbs:v,kg:kg};updated=true;break;}}
+  if(!updated) APP.weights.push({date:ds,lbs:v,kg:kg});
+  saveApp();buildChart();document.getElementById("wInput").value="";
+  showPop("Logged: "+v+" lbs ("+kg+" kg)");
+}
+
+function fmtDate(str){var p=str.split("-");var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return m[parseInt(p[1])-1]+" "+parseInt(p[2]);}
+
+function buildChart(){
+  var w=APP.weights;if(!w||w.length===0)return;
+  var mn=w[0].lbs,mx=w[0].lbs;
+  for(var i=1;i<w.length;i++){if(w[i].lbs<mn)mn=w[i].lbs;if(w[i].lbs>mx)mx=w[i].lbs;}
+  mn=mn-1;mx=mx+1;
+  var chart=document.getElementById("wchart");chart.innerHTML="";
+  for(var i=0;i<w.length;i++){
+    var pct=((w[i].lbs-mn)/(mx-mn))*100;
+    var bar=document.createElement("div");bar.className="wbar";
+    bar.style.height=Math.max(pct,4)+"%";
+    bar.style.background=(i===w.length-1)?"linear-gradient(180deg,#4fc3f7,#1565c0)":"rgba(79,195,247,0.4)";
+    var tip=document.createElement("div");tip.className="wtip";
+    tip.textContent=w[i].lbs+" lbs · "+w[i].kg+" kg · "+fmtDate(w[i].date);
+    bar.appendChild(tip);chart.appendChild(bar);
+  }
+  var first=fmtDate(w[0].date),last=fmtDate(w[w.length-1].date);
+  var r=document.getElementById("chartRange");if(r) r.textContent=first+" → "+last+" · "+w.length+" readings";
+  var label=document.getElementById("chartRangeLabel");if(label) label.textContent=first+" → "+last;
+  var ax=document.getElementById("chartAxis");
+  if(ax) ax.innerHTML="<span>"+fmtDate(w[0].date)+"</span><span>"+fmtDate(w[Math.floor(w.length/2)].date)+"</span><span>"+fmtDate(w[w.length-1].date)+"</span>";
+}
+
+function restoreUI(){
+  for(var wi=0;wi<WORKOUT_IDS.length;wi++){
+    var wid=WORKOUT_IDS[wi].id;var total=WORKOUT_IDS[wi].total;
+    updateProgress(wid);
+    if(APP.lastDone[wid]) showLastDone(wid,APP.lastDone[wid]);
+    for(var i=0;i<total;i++){
+      var key=wid+"_"+i;var ex=APP.exercises[key];
+      if(ex&&typeof ex==="object"){
+        if(ex.done){
+          var btn=document.getElementById("btn_"+wid+"_"+i);
+          var card=document.getElementById("excard_"+wid+"_"+i);
+          if(btn){btn.textContent="✓ Done";btn.classList.add("checked");}
+          if(card){var nm=card.querySelector(".ex-name");if(nm) nm.classList.add("striked");}
+          if(ex.bestWeight){var prEl=document.getElementById("expr_"+wid+"_"+i);if(prEl) prEl.textContent="★ PR: "+ex.bestWeight+" lbs";}
+        } else {
+          if(ex.weight!==undefined){var wel=document.getElementById("w_"+wid+"_"+i);if(wel) wel.textContent=ex.weight;}
+        }
+      }
+      refreshPRLabel(wid,i);
+    }
+  }
+  for(var i=0;i<SKILL_DEFS.length;i++){
+    var s=SKILL_DEFS[i];var cur=APP.skills[s.id]||s.defVal;
+    skillVals[s.id]=cur;
+    var el=document.getElementById("sv_"+s.id);if(el) el.textContent=cur;
+    updateSkillBar(s.id);
+  }
+}
+
+loadApp();markTodayChips();restoreChips();restoreUI();updateXP();buildChart();
+</script>
+</body>
+</html>
