@@ -1,0 +1,21 @@
+{
+  "name": "Rise",
+  "short_name": "Rise",
+  "description": "Personal gym tracker",
+  "start_url": "/Rise/rise.html",
+  "display": "standalone",
+  "background_color": "#06060f",
+  "theme_color": "#06060f",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/06060f/4fc3f7?text=R",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/06060f/4fc3f7?text=R",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
