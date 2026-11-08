@@ -2,7 +2,7 @@
   "name": "Rise",
   "short_name": "Rise",
   "description": "Personal gym tracker",
-  "start_url": "/Rise/rise.html",
+  "start_url": "/Rise/",
   "display": "standalone",
   "background_color": "#06060f",
   "theme_color": "#06060f",
