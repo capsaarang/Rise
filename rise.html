@@ -532,6 +532,7 @@ function restoreUI(){
   }
 }
 
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js');}
 showSplash();loadApp();markTodayChips();restoreChips();restoreUI();updateXP();buildChart();
 </script>
 </body>
