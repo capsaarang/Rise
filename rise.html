@@ -98,6 +98,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .wbar:hover{opacity:0.75;}
 .wtip{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#12122a;border:1px solid #4fc3f733;border-radius:7px;padding:4px 8px;font-size:9px;color:#4fc3f7;white-space:nowrap;pointer-events:none;display:none;z-index:10;}
 .wbar:hover .wtip{display:block;}
+.wbar.selected-bar{outline:2px solid #ffd166;border-radius:2px 2px 0 0;}
+.wdel-btn{position:absolute;bottom:calc(100% + 32px);left:50%;transform:translateX(-50%);background:#1a0a0a;border:1px solid rgba(255,80,80,0.5);border-radius:6px;padding:3px 7px;font-size:10px;color:#ff5555;cursor:pointer;white-space:nowrap;display:none;z-index:11;}
+.wbar.selected-bar .wdel-btn{display:block;}
 .chart-axis{display:flex;justify-content:space-between;font-size:7px;color:rgba(255,255,255,0.18);margin-top:4px;}
 
 .cali-hdr{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
@@ -479,7 +482,18 @@ function buildChart(){
     bar.style.background=(i===w.length-1)?"linear-gradient(180deg,#4fc3f7,#1565c0)":"rgba(79,195,247,0.4)";
     var tip=document.createElement("div");tip.className="wtip";
     tip.textContent=w[i].lbs+" lbs · "+w[i].kg+" kg · "+fmtDate(w[i].date);
-    bar.appendChild(tip);chart.appendChild(bar);
+    bar.appendChild(tip);
+    (function(idx){
+      var del=document.createElement("div");del.className="wdel-btn";del.textContent="✕ Delete";
+      del.onclick=function(e){e.stopPropagation();APP.weights.splice(idx,1);saveApp();buildChart();};
+      bar.appendChild(del);
+      bar.onclick=function(){
+        var bars=chart.querySelectorAll(".wbar");
+        bars.forEach(function(b){b.classList.remove("selected-bar");});
+        bar.classList.add("selected-bar");
+      };
+    })(i);
+    chart.appendChild(bar);
   }
   var first=fmtDate(w[0].date),last=fmtDate(w[w.length-1].date);
   var r=document.getElementById("chartRange");if(r) r.textContent=first+" → "+last+" · "+w.length+" readings";
